@@ -44,8 +44,10 @@ const credentials = ref({
 })
 
 const privacyPolicies = ref(false)
+const loading = ref(false)
 
 const register = async () => {
+  loading.value = true
   try {
     const res = await $api('/auth/register', {
       method: 'POST',
@@ -72,6 +74,8 @@ const register = async () => {
     })
   } catch (err) {
     console.error(err)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -135,10 +139,10 @@ const onSubmit = () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Adventure starts here 🚀
+            L'aventure commence ici 🚀
           </h4>
           <p class="mb-0">
-            Make your app management easy and fun!
+            Gérez vos simulations de prêt en toute simplicité !
           </p>
         </VCardText>
 
@@ -152,7 +156,7 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="credentials.name"
-                  label="Name"
+                  label="Nom complet"
                   placeholder="John Doe"
                   autofocus
                   :rules="[requiredValidator]"
@@ -175,7 +179,7 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="credentials.password"
-                  label="Password"
+                  label="Mot de passe"
                   placeholder="············"
                   :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
@@ -190,7 +194,7 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="credentials.password_confirmation"
-                  label="Confirm Password"
+                  label="Confirmer le mot de passe"
                   placeholder="············"
                   :rules="[requiredValidator]"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
@@ -199,10 +203,10 @@ const onSubmit = () => {
                   @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 />
 
-                <div class="d-flex align-center flex-wrap justify-space-between my-6">
+                <div class="d-flex align-center flex-wrap mt-2 mb-4">
                   <VCheckbox
                     v-model="privacyPolicies"
-                    label="I agree to privacy policy & terms"
+                    label="J'accepte la politique de confidentialité et les conditions d'utilisation"
                   />
                 </div>
 
@@ -210,8 +214,13 @@ const onSubmit = () => {
                   block
                   type="submit"
                   :disabled="!privacyPolicies"
+                  :loading="loading"
+                  class="mt-2"
                 >
-                  Sign up
+                  S'inscrire
+                  <template #loader>
+                    <VProgressCircular indeterminate color="white" size="22" width="2" />
+                  </template>
                 </VBtn>
               </VCol>
 
@@ -220,7 +229,7 @@ const onSubmit = () => {
                 class="d-flex align-center"
               >
                 <VDivider />
-                <span class="mx-4">or</span>
+                <span class="mx-4">ou</span>
                 <VDivider />
               </VCol>
 
@@ -233,12 +242,12 @@ const onSubmit = () => {
               </VCol>
               
               <VCol cols="12" class="text-center">
-                <span>Already have an account?</span>
+                <span>Vous avez déjà un compte ?</span>
                 <RouterLink
                   class="text-primary ms-2"
                   to="/login"
                 >
-                  Sign in instead
+                  Connectez-vous à la place
                 </RouterLink>
               </VCol>
             </VRow>

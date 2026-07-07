@@ -1,4 +1,5 @@
 <script setup>
+import UserProfile from '@/layouts/components/UserProfile.vue'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -52,13 +53,7 @@ const links = [
         >
           Mes simulations
         </VBtn>
-        <VAvatar
-          color="primary"
-          variant="tonal"
-          size="34"
-        >
-          <span class="text-sm font-weight-medium">{{ (userData.name || '?').charAt(0).toUpperCase() }}</span>
-        </VAvatar>
+        <UserProfile />
       </template>
       <template v-else>
         <VBtn

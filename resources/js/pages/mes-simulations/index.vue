@@ -1,8 +1,11 @@
 <script setup>
+import FrontFooter from '@/views/front/FrontFooter.vue'
+import FrontNavbar from '@/views/front/FrontNavbar.vue'
 import { formatDuration, formatXOF, LOAN_METHODS, methodLabel } from '@/utils/loan'
 
 definePage({
   meta: {
+    layout: 'blank',
     action: 'read',
     subject: 'simulation',
   },
@@ -126,7 +129,10 @@ const downloadExport = async (simulation, { format, ext }) => {
 </script>
 
 <template>
-  <div>
+  <div class="front-page mes-simulations-page">
+    <FrontNavbar />
+    
+    <div class="front-container py-8">
     <VCard>
       <VCardItem>
         <VCardTitle>Mes simulations</VCardTitle>
@@ -313,6 +319,9 @@ const downloadExport = async (simulation, { format, ext }) => {
         </VCardText>
       </VCard>
     </VDialog>
+    </div>
+
+    <FrontFooter />
   </div>
 </template>
 
@@ -329,5 +338,9 @@ const downloadExport = async (simulation, { format, ext }) => {
 :deep(.row-removing) {
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+.mes-simulations-page {
+  min-block-size: 100vh;
 }
 </style>

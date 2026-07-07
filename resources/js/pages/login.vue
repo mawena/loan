@@ -39,8 +39,10 @@ const credentials = ref({
 })
 
 const rememberMe = ref(false)
+const loading = ref(false)
 
 const login = async () => {
+  loading.value = true
   try {
     const res = await $api('/auth/login', {
       method: 'POST',
@@ -60,14 +62,19 @@ const login = async () => {
     useCookie('userData').value = user
     useCookie('accessToken').value = userToken
 
-    // Redirect to `to` query if exist or redirect to index route
-
-    // ❗ nextTick is required to wait for DOM updates and later redirect
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/')
+      if (route.query.to) {
+        router.replace(String(route.query.to))
+      } else if (ability.can('manage', 'all')) {
+        router.replace('/admin/users')
+      } else {
+        router.replace('/')
+      }
     })
   } catch (err) {
     console.error(err)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -104,10 +111,10 @@ const onSubmit = () => {
       <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-4">
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
+            Bienvenue sur <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            Veuillez vous connecter à votre compte pour commencer l'aventure
           </p>
         </VCardText>
         <VCardText>
@@ -121,15 +128,22 @@ const onSubmit = () => {
 
               <!-- password -->
               <VCol cols="12">
-                <AppTextField v-model="credentials.password" label="Password" placeholder="············"
+                <AppTextField v-model="credentials.password" label="Mot de passe" placeholder="············"
                   :rules="[requiredValidator]" :type="isPasswordVisible ? 'text' : 'password'" autocomplete="password"
                   :error-messages="errors.password"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible" />
 
+                <div class="d-flex align-center justify-space-between flex-wrap mt-2 mb-4">
+                  <VCheckbox v-model="rememberMe" label="Se souvenir de moi" />
+                  <a class="text-primary cursor-pointer" href="javascript:void(0)">Mot de passe oublié ?</a>
+                </div>
 
-                <VBtn block type="submit">
-                  Login
+                <VBtn block type="submit" class="mt-2" :loading="loading">
+                  Se connecter
+                  <template #loader>
+                    <VProgressCircular indeterminate color="white" size="22" width="2" />
+                  </template>
                 </VBtn>
               </VCol>
 

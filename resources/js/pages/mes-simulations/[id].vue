@@ -1,8 +1,11 @@
 <script setup>
+import FrontFooter from '@/views/front/FrontFooter.vue'
+import FrontNavbar from '@/views/front/FrontNavbar.vue'
 import SimulationResult from '@/views/simulations/SimulationResult.vue'
 
 definePage({
   meta: {
+    layout: 'blank',
     action: 'read',
     subject: 'simulation',
   },
@@ -31,7 +34,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="front-page mes-simulations-page">
+    <FrontNavbar />
+    <div class="front-container py-8">
     <div class="d-flex flex-wrap justify-space-between align-center gap-4 mb-6">
       <div>
         <h1 class="text-h4 mb-1">
@@ -69,5 +74,13 @@ onMounted(async () => {
       :simulation="simulation"
       can-manage
     />
+    </div>
+    <FrontFooter />
   </div>
 </template>
+
+<style lang="scss">
+.mes-simulations-page {
+  min-block-size: 100vh;
+}
+</style>
