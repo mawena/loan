@@ -60,14 +60,23 @@ const links = [
           <span class="text-sm font-weight-medium">{{ (userData.name || '?').charAt(0).toUpperCase() }}</span>
         </VAvatar>
       </template>
-      <VBtn
-        v-else
-        size="small"
-        to="/login"
-        prepend-icon="tabler-login-2"
-      >
-        Se connecter
-      </VBtn>
+      <template v-else>
+        <VBtn
+          variant="outlined"
+          size="small"
+          to="/login"
+          class="d-none d-sm-flex"
+        >
+          Se connecter
+        </VBtn>
+        <VBtn
+          size="small"
+          to="/register"
+          prepend-icon="tabler-user-plus"
+        >
+          S'inscrire
+        </VBtn>
+      </template>
 
       <IconBtn
         class="d-md-none"
@@ -91,14 +100,31 @@ const links = [
         >
           {{ link.title }}
         </RouterLink>
-        <RouterLink
-          v-if="userData"
-          to="/mes-simulations"
-          class="front-nav-link"
-          @click="isMobileMenuOpen = false"
-        >
-          Mes simulations
-        </RouterLink>
+        <template v-if="userData">
+          <RouterLink
+            to="/mes-simulations"
+            class="front-nav-link"
+            @click="isMobileMenuOpen = false"
+          >
+            Mes simulations
+          </RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink
+            to="/login"
+            class="front-nav-link"
+            @click="isMobileMenuOpen = false"
+          >
+            Se connecter
+          </RouterLink>
+          <RouterLink
+            to="/register"
+            class="front-nav-link"
+            @click="isMobileMenuOpen = false"
+          >
+            S'inscrire
+          </RouterLink>
+        </template>
       </nav>
     </VExpandTransition>
   </header>

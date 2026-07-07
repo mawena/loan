@@ -22,7 +22,7 @@ export default () => [
         icon: { icon: 'tabler-history' },
         to: 'mes-simulations',
         action: 'read',
-        subject: 'Auth',
+        subject: 'simulation',
       },
       {
         title: 'Comparateur',

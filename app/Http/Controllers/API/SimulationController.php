@@ -124,7 +124,7 @@ class SimulationController extends Controller
      */
     public function show(Request $request, Simulation $simulation)
     {
-        if ($simulation->user_id !== $request->user()->id) {
+        if ($request->user()->cannot('view', $simulation)) {
             return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
         }
 
@@ -145,7 +145,7 @@ class SimulationController extends Controller
      */
     public function destroy(Request $request, Simulation $simulation)
     {
-        if ($simulation->user_id !== $request->user()->id) {
+        if ($request->user()->cannot('delete', $simulation)) {
             return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
         }
 
@@ -159,7 +159,7 @@ class SimulationController extends Controller
      */
     public function export(Request $request, Simulation $simulation, string $format, SimulationExportService $exporter)
     {
-        if ($simulation->user_id !== $request->user()->id) {
+        if ($request->user()->cannot('view', $simulation)) {
             return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
         }
 
@@ -176,7 +176,7 @@ class SimulationController extends Controller
      */
     public function share(Request $request, Simulation $simulation)
     {
-        if ($simulation->user_id !== $request->user()->id) {
+        if ($request->user()->cannot('update', $simulation)) {
             return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
         }
 
@@ -195,7 +195,7 @@ class SimulationController extends Controller
      */
     public function unshare(Request $request, Simulation $simulation)
     {
-        if ($simulation->user_id !== $request->user()->id) {
+        if ($request->user()->cannot('update', $simulation)) {
             return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
         }
 

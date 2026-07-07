@@ -24,6 +24,7 @@ Route::middleware(['auth:sanctum', 'account.status'])->group(function () {
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('auth/login', 'login')->name('auth.login');
+    Route::post('auth/register', 'register')->name('auth.register');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('auth')->name('auth.')->group(function () {

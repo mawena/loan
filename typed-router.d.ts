@@ -30,6 +30,7 @@ declare module 'vue-router/auto-routes' {
     'mes-simulations': RouteRecordInfo<'mes-simulations', '/mes-simulations', Record<never, never>, Record<never, never>>,
     'mes-simulations-id': RouteRecordInfo<'mes-simulations-id', '/mes-simulations/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'not-authorized': RouteRecordInfo<'not-authorized', '/not-authorized', Record<never, never>, Record<never, never>>,
+    'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'remboursement-anticipe': RouteRecordInfo<'remboursement-anticipe', '/remboursement-anticipe', Record<never, never>, Record<never, never>>,
     'stoken': RouteRecordInfo<'stoken', '/s/:token', { token: ParamValue<true> }, { token: ParamValue<false> }>,
     'simulateur': RouteRecordInfo<'simulateur', '/simulateur', Record<never, never>, Record<never, never>>,

@@ -4,7 +4,7 @@ import { formatDuration, formatXOF, LOAN_METHODS, methodLabel } from '@/utils/lo
 definePage({
   meta: {
     action: 'read',
-    subject: 'Auth',
+    subject: 'simulation',
   },
 })
 

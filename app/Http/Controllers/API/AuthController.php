@@ -46,6 +46,37 @@ class AuthController extends APIController
     }
 
     /**
+     * Inscrit un nouveau client
+     *
+     * @response 200
+     */
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError($validator->errors()->toArray(), 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'activated' => true,
+        ]);
+
+        $user->assignRole('client');
+
+        return $this->responseOk([
+            "userToken" => $user->createToken($request->email)->plainTextToken,
+            "user" => $user,
+        ]);
+    }
+
+    /**
      * Affiche l'utilisateur connecté
      *
      * @response 200

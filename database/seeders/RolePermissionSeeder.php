@@ -30,6 +30,16 @@ class RolePermissionSeeder extends Seeder
             ]
         );
 
+        // Rôle client
+        $clientRole = Role::firstOrCreate(
+            ['name' => 'client'],
+            [
+                'label' => 'Client',
+                'description' => 'Peut gérer ses simulations',
+                'is_super_admin' => false,
+            ]
+        );
+
         // Permissions de base. Ajoutez-en autant que nécessaire à l'avenir.
         $permissions = [
             ['action' => 'read', 'subject' => 'user', 'label' => 'Voir les utilisateurs'],
@@ -38,6 +48,10 @@ class RolePermissionSeeder extends Seeder
             ['action' => 'delete', 'subject' => 'user', 'label' => 'Supprimer un utilisateur'],
             ['action' => 'manage', 'subject' => 'role', 'label' => 'Gérer les rôles'],
             ['action' => 'manage', 'subject' => 'permission', 'label' => 'Gérer les permissions'],
+            ['action' => 'read', 'subject' => 'simulation', 'label' => 'Voir ses simulations'],
+            ['action' => 'create', 'subject' => 'simulation', 'label' => 'Créer une simulation'],
+            ['action' => 'update', 'subject' => 'simulation', 'label' => 'Modifier ses simulations'],
+            ['action' => 'delete', 'subject' => 'simulation', 'label' => 'Supprimer ses simulations'],
         ];
 
         foreach ($permissions as $permission) {
@@ -45,6 +59,12 @@ class RolePermissionSeeder extends Seeder
                 ['action' => $permission['action'], 'subject' => $permission['subject']],
                 ['label' => $permission['label'] ?? null]
             );
+        }
+
+        // Assigner les permissions de simulation au client
+        $clientPerms = Permission::where('subject', 'simulation')->get();
+        if ($clientPerms->isNotEmpty()) {
+            $clientRole->permissions()->syncWithoutDetaching($clientPerms->pluck('id'));
         }
     }
 }

@@ -4,7 +4,7 @@ import SimulationResult from '@/views/simulations/SimulationResult.vue'
 definePage({
   meta: {
     action: 'read',
-    subject: 'Auth',
+    subject: 'simulation',
   },
 })
 

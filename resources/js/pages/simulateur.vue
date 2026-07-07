@@ -283,6 +283,10 @@ const onSubmit = () => {
                       <RouterLink to="/login">
                         Connectez-vous
                       </RouterLink>
+                      ou
+                      <RouterLink to="/register">
+                        créez un compte
+                      </RouterLink>
                       pour sauvegarder et télécharger vos simulations.
                     </p>
                   </VCol>
