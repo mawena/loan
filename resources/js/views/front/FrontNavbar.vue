@@ -7,9 +7,10 @@ const isMobileMenuOpen = ref(false)
 
 const links = [
   { title: 'Simulateur', to: { path: '/simulateur' } },
-  { title: 'Fonctionnalités', to: { path: '/', hash: '#fonctionnalites' } },
+  { title: 'Comparateur', to: { path: '/comparateur' } },
+  { title: 'Remboursement anticipé', to: { path: '/remboursement-anticipe' } },
+  { title: 'Capacité d\'emprunt', to: { path: '/capacite-emprunt' } },
   { title: 'Tarifs', to: { path: '/', hash: '#tarifs' } },
-  { title: 'FAQ', to: { path: '/', hash: '#faq' } },
 ]
 </script>
 

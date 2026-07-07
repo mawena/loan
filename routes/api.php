@@ -11,11 +11,15 @@ use Illuminate\Support\Facades\Route;
 // via le bearer token quand il est présent, sans être obligatoire)
 Route::get('simulations/quota', [SimulationController::class, 'quota'])->name('simulations.quota');
 Route::post('simulations', [SimulationController::class, 'store'])->name('simulations.store');
+Route::get('shared/{token}', [SimulationController::class, 'shared'])->name('simulations.shared');
 
 Route::middleware(['auth:sanctum', 'account.status'])->group(function () {
     Route::get('simulations', [SimulationController::class, 'index'])->name('simulations.index');
     Route::get('simulations/{simulation}', [SimulationController::class, 'show'])->name('simulations.show');
     Route::delete('simulations/{simulation}', [SimulationController::class, 'destroy'])->name('simulations.destroy');
+    Route::get('simulations/{simulation}/export/{format}', [SimulationController::class, 'export'])->name('simulations.export');
+    Route::post('simulations/{simulation}/share', [SimulationController::class, 'share'])->name('simulations.share');
+    Route::delete('simulations/{simulation}/share', [SimulationController::class, 'unshare'])->name('simulations.unshare');
 });
 
 Route::controller(AuthController::class)->group(function () {

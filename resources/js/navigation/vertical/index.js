@@ -7,6 +7,47 @@ export default () => [
     subject: 'Auth',
   },
   {
+    title: 'Simulation',
+    icon: { icon: 'tabler-calculator' },
+    children: [
+      {
+        title: 'Simulateur de prêt',
+        icon: { icon: 'tabler-calculator' },
+        to: 'simulateur',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Mes simulations',
+        icon: { icon: 'tabler-history' },
+        to: 'mes-simulations',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Comparateur',
+        icon: { icon: 'tabler-git-compare' },
+        to: 'comparateur',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Remboursement anticipé',
+        icon: { icon: 'tabler-coins' },
+        to: 'remboursement-anticipe',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Capacité d\'emprunt',
+        icon: { icon: 'tabler-wallet' },
+        to: 'capacite-emprunt',
+        action: 'read',
+        subject: 'Auth',
+      },
+    ],
+  },
+  {
     title: 'Administration',
     icon: { icon: 'tabler-settings' },
     children: [

@@ -131,4 +131,58 @@ class SimulationApiTest extends TestCase
         $this->deleteJson('/api/simulations/' . $id)->assertOk();
         $this->assertDatabaseMissing('simulations', ['id' => $id]);
     }
+
+    public function test_user_can_export_own_simulation_in_all_formats(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $id = $this->postJson('/api/simulations', $this->validPayload)->json('data.simulation.id');
+
+        $expected = [
+            'pdf' => 'application/pdf',
+            'word' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'excel' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+
+        foreach ($expected as $format => $mime) {
+            $response = $this->get("/api/simulations/$id/export/$format");
+            $response->assertOk();
+            $this->assertStringContainsString($mime, $response->headers->get('content-type'), "Format $format");
+            $this->assertStringContainsString('attachment', $response->headers->get('content-disposition'));
+        }
+
+        $this->get("/api/simulations/$id/export/csv")->assertStatus(422);
+    }
+
+    public function test_guest_cannot_export(): void
+    {
+        $owner = User::factory()->create();
+        Sanctum::actingAs($owner);
+        $id = $this->postJson('/api/simulations', $this->validPayload)->json('data.simulation.id');
+
+        // Un autre utilisateur ne peut pas exporter la simulation d'autrui
+        Sanctum::actingAs(User::factory()->create());
+        $this->get("/api/simulations/$id/export/pdf")->assertStatus(403);
+    }
+
+    public function test_share_link_lifecycle(): void
+    {
+        $owner = User::factory()->create();
+        Sanctum::actingAs($owner);
+        $id = $this->postJson('/api/simulations', $this->validPayload)->json('data.simulation.id');
+
+        // Génération du lien
+        $share = $this->postJson("/api/simulations/$id/share")->assertOk()->json('data');
+        $this->assertNotEmpty($share['share_token']);
+
+        // Consultation publique (endpoint sans authentification requise)
+        $this->getJson('/api/shared/' . $share['share_token'])
+            ->assertOk()
+            ->assertJsonPath('data.params.amount', 5000000)
+            ->assertJsonMissingPath('data.user_id');
+
+        // Révocation
+        $this->deleteJson("/api/simulations/$id/share")->assertOk();
+        $this->getJson('/api/shared/' . $share['share_token'])->assertStatus(404);
+    }
 }

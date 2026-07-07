@@ -373,6 +373,7 @@
     "formatNumber": true,
     "formatXOF": true,
     "methodLabel": true,
-    "totalInterest": true
+    "totalInterest": true,
+    "generateSchedule": true
   }
 }

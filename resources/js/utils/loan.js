@@ -69,6 +69,44 @@ export const firstMonthlyPayment = (amount, annualRate, months, method = 'annuit
 }
 
 /**
+ * Échéancier complet côté client (hors assurance), miroir de
+ * App\Services\LoanCalculator — utilisé par les outils interactifs
+ * (comparateur, remboursement anticipé) qui ne consomment pas le quota.
+ *
+ * @returns {Array<{period:number, payment:number, principal:number, interest:number, balance:number}>}
+ */
+export const generateSchedule = (amount, annualRate, months, method = 'annuity') => {
+  const i = annualRate / 12 / 100
+  const schedule = []
+  let balance = amount
+
+  const annuityPayment = i > 0 ? amount * i / (1 - (1 + i) ** -months) : amount / months
+
+  for (let p = 1; p <= months; p++) {
+    const interest = balance * i
+    let principal
+
+    if (method === 'constant_capital')
+      principal = p < months ? amount / months : balance
+    else if (method === 'in_fine')
+      principal = p === months ? amount : 0
+    else
+      principal = p < months ? annuityPayment - interest : balance
+
+    balance = Math.max(0, balance - principal)
+    schedule.push({
+      period: p,
+      payment: principal + interest,
+      principal,
+      interest,
+      balance,
+    })
+  }
+
+  return schedule
+}
+
+/**
  * Total des intérêts sur toute la durée (hors assurance), selon la méthode.
  */
 export const totalInterest = (amount, annualRate, months, method = 'annuity') => {

@@ -1,0 +1,1 @@
+.shared-page{min-block-size:100vh}.shared-page .shared-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700}.shared-page .shared-not-found{background:rgba(var(--v-theme-on-surface),.02);border:2px dashed rgba(var(--v-border-color),calc(var(--v-border-opacity) * 2))}

@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Simulation;
 use App\Services\LoanCalculator;
 use App\Services\QuotaService;
+use App\Services\SimulationExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maravel\Http\Traits\CustomResponseTrait;
 
 /**
@@ -150,5 +152,76 @@ class SimulationController extends Controller
         $simulation->delete();
 
         return $this->responseOk([], ['Simulation supprimée.']);
+    }
+
+    /**
+     * Exporte une simulation en PDF, Word ou Excel (propriétaire uniquement).
+     */
+    public function export(Request $request, Simulation $simulation, string $format, SimulationExportService $exporter)
+    {
+        if ($simulation->user_id !== $request->user()->id) {
+            return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
+        }
+
+        return match ($format) {
+            'pdf' => $exporter->pdf($simulation),
+            'word' => $exporter->word($simulation),
+            'excel' => $exporter->excel($simulation),
+            default => $this->responseError(['format' => 'Format inconnu. Formats disponibles : pdf, word, excel.'], 422),
+        };
+    }
+
+    /**
+     * Génère (ou renvoie) le lien de partage public d'une simulation.
+     */
+    public function share(Request $request, Simulation $simulation)
+    {
+        if ($simulation->user_id !== $request->user()->id) {
+            return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
+        }
+
+        if (!$simulation->share_token) {
+            $simulation->update(['share_token' => Str::random(40)]);
+        }
+
+        return $this->responseOk([
+            'share_token' => $simulation->share_token,
+            'share_url' => url('/s/' . $simulation->share_token),
+        ], ['Lien de partage actif.']);
+    }
+
+    /**
+     * Révoque le lien de partage d'une simulation.
+     */
+    public function unshare(Request $request, Simulation $simulation)
+    {
+        if ($simulation->user_id !== $request->user()->id) {
+            return $this->responseError(['forbidden' => 'Accès refusé.'], 403);
+        }
+
+        $simulation->update(['share_token' => null]);
+
+        return $this->responseOk([], ['Lien de partage désactivé.']);
+    }
+
+    /**
+     * Consultation publique d'une simulation partagée (lecture seule, sans données du propriétaire).
+     */
+    public function shared(string $token)
+    {
+        $simulation = Simulation::query()->where('share_token', $token)->first();
+
+        if (!$simulation) {
+            return $this->responseError(['not_found' => 'Ce lien de partage est invalide ou a été désactivé.'], 404);
+        }
+
+        return $this->responseOk([
+            'type' => $simulation->type,
+            'title' => $simulation->title,
+            'params' => $simulation->params,
+            'summary' => $simulation->results['summary'] ?? null,
+            'schedule' => $simulation->results['schedule'] ?? [],
+            'created_at' => $simulation->created_at->toISOString(),
+        ]);
     }
 }

@@ -24,7 +24,14 @@ declare module 'vue-router/auto-routes' {
     'admin-permissions': RouteRecordInfo<'admin-permissions', '/admin/permissions', Record<never, never>, Record<never, never>>,
     'admin-roles': RouteRecordInfo<'admin-roles', '/admin/roles', Record<never, never>, Record<never, never>>,
     'admin-users': RouteRecordInfo<'admin-users', '/admin/users', Record<never, never>, Record<never, never>>,
+    'capacite-emprunt': RouteRecordInfo<'capacite-emprunt', '/capacite-emprunt', Record<never, never>, Record<never, never>>,
+    'comparateur': RouteRecordInfo<'comparateur', '/comparateur', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
+    'mes-simulations': RouteRecordInfo<'mes-simulations', '/mes-simulations', Record<never, never>, Record<never, never>>,
+    'mes-simulations-id': RouteRecordInfo<'mes-simulations-id', '/mes-simulations/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'not-authorized': RouteRecordInfo<'not-authorized', '/not-authorized', Record<never, never>, Record<never, never>>,
+    'remboursement-anticipe': RouteRecordInfo<'remboursement-anticipe', '/remboursement-anticipe', Record<never, never>, Record<never, never>>,
+    'stoken': RouteRecordInfo<'stoken', '/s/:token', { token: ParamValue<true> }, { token: ParamValue<false> }>,
+    'simulateur': RouteRecordInfo<'simulateur', '/simulateur', Record<never, never>, Record<never, never>>,
   }
 }
