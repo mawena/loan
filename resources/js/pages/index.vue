@@ -245,43 +245,70 @@ const faqs = [
                 </div>
 
                 <div class="mb-5">
-                  <div class="d-flex justify-space-between align-baseline mb-1">
+                  <div class="d-flex justify-space-between align-center mb-2">
                     <span class="text-body-2 font-weight-medium">Montant du prêt</span>
-                    <span class="front-mono text-body-1 font-weight-bold">{{ formatXOF(amount) }}</span>
+                    <VTextField
+                      v-model.number="amount"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      suffix="FCFA"
+                      hide-details
+                      style="max-inline-size: 160px;"
+                      class="front-mono font-weight-bold"
+                    />
                   </div>
                   <VSlider
                     v-model="amount"
-                    :min="250000"
+                    :min="100000"
                     :max="100000000"
-                    :step="250000"
+                    :step="10000"
                     hide-details
                   />
                 </div>
 
                 <div class="mb-5">
-                  <div class="d-flex justify-space-between align-baseline mb-1">
+                  <div class="d-flex justify-space-between align-center mb-2">
                     <span class="text-body-2 font-weight-medium">Taux annuel</span>
-                    <span class="front-mono text-body-1 font-weight-bold">{{ rate.toLocaleString('fr-FR') }} %</span>
+                    <VTextField
+                      v-model.number="rate"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      suffix="%"
+                      hide-details
+                      style="max-inline-size: 120px;"
+                      class="front-mono font-weight-bold"
+                    />
                   </div>
                   <VSlider
                     v-model="rate"
                     :min="0"
                     :max="30"
-                    :step="0.25"
+                    :step="0.1"
                     hide-details
                   />
                 </div>
 
                 <div class="mb-6">
-                  <div class="d-flex justify-space-between align-baseline mb-1">
+                  <div class="d-flex justify-space-between align-center mb-2">
                     <span class="text-body-2 font-weight-medium">Durée</span>
-                    <span class="front-mono text-body-1 font-weight-bold">{{ formatDuration(months) }}</span>
+                    <VTextField
+                      v-model.number="months"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      suffix="mois"
+                      hide-details
+                      style="max-inline-size: 120px;"
+                      class="front-mono font-weight-bold"
+                    />
                   </div>
                   <VSlider
                     v-model="months"
                     :min="6"
                     :max="360"
-                    :step="6"
+                    :step="1"
                     hide-details
                   />
                 </div>

@@ -59,12 +59,12 @@ export const firstMonthlyPayment = (amount, annualRate, months, method = 'annuit
   const i = annualRate / 12 / 100
 
   switch (method) {
-    case 'constant_capital':
-      return amount / months + amount * i
-    case 'in_fine':
-      return i > 0 ? amount * i : amount / months
-    default: // annuity
-      return i > 0 ? amount * i / (1 - (1 + i) ** -months) : amount / months
+  case 'constant_capital':
+    return amount / months + amount * i
+  case 'in_fine':
+    return i > 0 ? amount * i : amount / months
+  default: // annuity
+    return i > 0 ? amount * i / (1 - (1 + i) ** -months) : amount / months
   }
 }
 
@@ -75,11 +75,11 @@ export const totalInterest = (amount, annualRate, months, method = 'annuity') =>
   const i = annualRate / 12 / 100
 
   switch (method) {
-    case 'constant_capital':
-      return amount * i * (months + 1) / 2
-    case 'in_fine':
-      return amount * i * months
-    default: // annuity
-      return firstMonthlyPayment(amount, annualRate, months, 'annuity') * months - amount
+  case 'constant_capital':
+    return amount * i * (months + 1) / 2
+  case 'in_fine':
+    return amount * i * months
+  default: // annuity
+    return firstMonthlyPayment(amount, annualRate, months, 'annuity') * months - amount
   }
 }

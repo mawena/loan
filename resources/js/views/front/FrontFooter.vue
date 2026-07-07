@@ -27,10 +27,26 @@ const year = new Date().getFullYear()
               Outils
             </h6>
             <ul class="front-footer-links">
-              <li><RouterLink to="/simulateur">Tableau d'amortissement</RouterLink></li>
-              <li><RouterLink to="/comparateur">Comparateur de prêts</RouterLink></li>
-              <li><RouterLink to="/remboursement-anticipe">Remboursement anticipé</RouterLink></li>
-              <li><RouterLink to="/capacite-emprunt">Capacité d'emprunt</RouterLink></li>
+              <li>
+                <RouterLink to="/simulateur">
+                  Tableau d'amortissement
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/comparateur">
+                  Comparateur de prêts
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/remboursement-anticipe">
+                  Remboursement anticipé
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/capacite-emprunt">
+                  Capacité d'emprunt
+                </RouterLink>
+              </li>
             </ul>
           </div>
           <div>
@@ -38,9 +54,21 @@ const year = new Date().getFullYear()
               Compte
             </h6>
             <ul class="front-footer-links">
-              <li><RouterLink to="/login">Se connecter</RouterLink></li>
-              <li><RouterLink to="/mes-simulations">Mes simulations</RouterLink></li>
-              <li><RouterLink :to="{ path: '/', hash: '#tarifs' }">Tarifs</RouterLink></li>
+              <li>
+                <RouterLink to="/login">
+                  Se connecter
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/mes-simulations">
+                  Mes simulations
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink :to="{ path: '/', hash: '#tarifs' }">
+                  Tarifs
+                </RouterLink>
+              </li>
             </ul>
           </div>
         </div>
