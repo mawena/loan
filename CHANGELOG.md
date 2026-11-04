@@ -5,6 +5,14 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) et ce projet
 respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.0.1] - 2026-11-04
+
+### Changed
+
+- README propre au projet loan (simulateur de crédit), en remplacement de celui du template Maravel XY.
+
+> Les entrées 1.1.3 et antérieures ci-dessous sont l'historique du template Maravel XY dont le projet est issu.
+
 ## [1.1.3] - 2026-07-03
 
 ### Fixed
