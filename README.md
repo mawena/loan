@@ -253,4 +253,4 @@ Les assets compilés sont versionnés dans le dépôt (`public/build`, avec `man
 
 ## Licence
 
-Aucune licence n'est déclarée dans ce dépôt.
+Code publié sous licence MIT : voir [LICENSE](LICENSE).
