@@ -5,6 +5,23 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) et ce projet
 respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.2.0] - 2026-11-17
+
+### Added
+
+- **Inscription via Portier** : au retour de Portier, si aucun compte n'a l'adresse e-mail
+  vérifiée reçue, il est créé comme par l'inscription habituelle (mêmes règles de validation,
+  compte activé, rôle `client`), avec le nom tiré de `name` (à défaut `preferred_username`) et un
+  mot de passe aléatoire que personne ne connaît. Un compte existant n'est ni modifié ni dupliqué.
+- Bouton « S'inscrire via Portier » sur la page d'inscription (si `PORTIER_ACTIF=true`, après
+  acceptation de la politique de confidentialité).
+
+### Changed
+
+- Le refus `compte_inconnu` disparaît ; nouvelle erreur `inscription` si la création est refusée
+  par la validation. E-mail absent ou non vérifié : toujours refusé (`sans_email`).
+- Assets `public/build` reconstruits.
+
 ## [0.1.0] - 2026-11-17
 
 ### Added
