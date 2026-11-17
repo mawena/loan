@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Loan APP</title>
   <link rel="stylesheet" type="text/css" href="{{ asset('loader.css') }}" />
+  <script>window.portierActif = @json((bool) config('services.portier.actif'))</script>
   @vite(['resources/js/main.js'])
 </head>
 

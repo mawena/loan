@@ -5,6 +5,24 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) et ce projet
 respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.1.0] - 2026-11-17
+
+### Added
+
+- Connexion facultative **« Se connecter via Portier »** (OpenID Connect, https://portier.mawena.cloud),
+  en plus de la connexion par e-mail et mot de passe, qui reste inchangée. Flux code + PKCE S256,
+  `state`, `nonce` et secret client ; jeton d'identité RS256 vérifié avec le JWKS de Portier (`iss`,
+  `aud`, `exp`, `nonce`), sans nouvelle dépendance. Le compte local est trouvé par e-mail vérifié,
+  jamais créé. Routes `/auth/portier`, `/auth/portier/retour` et `POST /api/auth/portier/echange`.
+- Variables `PORTIER_ACTIF` (défaut `false` : routes en 404 et aucun bouton), `PORTIER_ISSUER`,
+  `PORTIER_CLIENT_ID`, `PORTIER_CLIENT_SECRET`, `PORTIER_REDIRECT_URI`.
+- Documentation `docs/portier.md` (adresse de retour à déclarer dans Portier), `ROADMAP.md`.
+- Tests `tests/Feature/PortierTest.php` avec un faux fournisseur.
+
+### Changed
+
+- Assets `public/build` reconstruits (bouton Portier sur la page de connexion).
+
 ## [0.0.1] - 2026-11-04
 
 ### Changed

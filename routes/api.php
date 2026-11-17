@@ -5,6 +5,7 @@ use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SimulationController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\PortierController;
 use Illuminate\Support\Facades\Route;
 
 // Simulations — accès public avec quota journalier (l'auth Sanctum est détectée
@@ -21,6 +22,11 @@ Route::middleware(['auth:sanctum', 'account.status'])->group(function () {
     Route::post('simulations/{simulation}/share', [SimulationController::class, 'share'])->name('simulations.share');
     Route::delete('simulations/{simulation}/share', [SimulationController::class, 'unshare'])->name('simulations.unshare');
 });
+
+// Échange du code à usage unique donné au retour de Portier contre un jeton Sanctum
+Route::post('auth/portier/echange', [PortierController::class, 'echange'])
+    ->middleware('throttle:10,1')
+    ->name('auth.portier.echange');
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('auth/login', 'login')->name('auth.login');
