@@ -85,6 +85,9 @@ const onSubmit = () => {
       register()
   })
 }
+
+// Inscription via Portier : même flux que la connexion (compte créé s'il n'existe pas)
+const portierActif = window.portierActif === true
 </script>
 
 <template>
@@ -221,6 +224,13 @@ const onSubmit = () => {
                   <template #loader>
                     <VProgressCircular indeterminate color="white" size="22" width="2" />
                   </template>
+                </VBtn>
+              </VCol>
+
+              <!-- Inscription via Portier (facultative, PORTIER_ACTIF dans .env) -->
+              <VCol v-if="portierActif" cols="12">
+                <VBtn block variant="tonal" href="/auth/portier" prepend-icon="tabler-shield-lock" :disabled="!privacyPolicies || loading">
+                  S'inscrire via Portier
                 </VBtn>
               </VCol>
 

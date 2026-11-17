@@ -86,7 +86,7 @@ const messagesPortier = {
   etat: 'La connexion via Portier a expiré ou a été interrompue. Réessayez.',
   refus: 'Portier a refusé l\'accès à cette application.',
   sans_email: 'Votre compte Portier n\'a pas d\'adresse e-mail vérifiée.',
-  compte_inconnu: 'Aucun compte Loan ne correspond à votre adresse e-mail Portier.',
+  inscription: 'Impossible de créer un compte Loan avec votre identité Portier.',
   echec: 'La connexion via Portier a échoué. Réessayez ou utilisez votre mot de passe.',
 }
 
