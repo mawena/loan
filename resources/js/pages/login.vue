@@ -78,6 +78,54 @@ const login = async () => {
   }
 }
 
+// Connexion via Portier (facultative, PORTIER_ACTIF dans .env)
+const portierActif = window.portierActif === true
+const portierErreur = ref('')
+
+const messagesPortier = {
+  etat: 'La connexion via Portier a expiré ou a été interrompue. Réessayez.',
+  refus: 'Portier a refusé l\'accès à cette application.',
+  sans_email: 'Votre compte Portier n\'a pas d\'adresse e-mail vérifiée.',
+  compte_inconnu: 'Aucun compte Loan ne correspond à votre adresse e-mail Portier.',
+  echec: 'La connexion via Portier a échoué. Réessayez ou utilisez votre mot de passe.',
+}
+
+const connexionPortier = async code => {
+  loading.value = true
+  try {
+    const res = await $api('/auth/portier/echange', {
+      method: 'POST',
+      body: { code },
+    })
+
+    const { userToken, user } = res.data
+
+    useCookie('userAbilityRules').value = user.ability_rules
+    ability.update(user.ability_rules)
+    useCookie('userData').value = user
+    useCookie('accessToken').value = userToken
+
+    await nextTick(() => {
+      router.replace(ability.can('manage', 'all') ? '/admin/users' : '/')
+    })
+  } catch (err) {
+    console.error(err)
+    portierErreur.value = messagesPortier.echec
+    router.replace({ query: {} })
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  if (route.query.portier_erreur) {
+    portierErreur.value = messagesPortier[String(route.query.portier_erreur)] ?? messagesPortier.echec
+    router.replace({ query: {} })
+  } else if (route.query.portier) {
+    connexionPortier(String(route.query.portier))
+  }
+})
+
 const onSubmit = () => {
   refVForm.value?.validate().then(({ valid: isValid }) => {
     if (isValid)
@@ -118,6 +166,9 @@ const onSubmit = () => {
           </p>
         </VCardText>
         <VCardText>
+          <VAlert v-if="portierErreur" type="error" variant="tonal" class="mb-4" closable @click:close="portierErreur = ''">
+            {{ portierErreur }}
+          </VAlert>
           <VForm ref="refVForm" @submit.prevent="onSubmit">
             <VRow>
               <!-- email -->
@@ -146,6 +197,19 @@ const onSubmit = () => {
                   </template>
                 </VBtn>
               </VCol>
+
+              <template v-if="portierActif">
+                <VCol cols="12" class="d-flex align-center">
+                  <VDivider />
+                  <span class="mx-4">ou</span>
+                  <VDivider />
+                </VCol>
+                <VCol cols="12">
+                  <VBtn block variant="tonal" href="/auth/portier" prepend-icon="tabler-shield-lock" :disabled="loading">
+                    Se connecter via Portier
+                  </VBtn>
+                </VCol>
+              </template>
 
               <VCol cols="12" class="text-center">
                 <span>Nouveau sur notre plateforme ?</span>

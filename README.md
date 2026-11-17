@@ -128,6 +128,9 @@ Variables d'environnement principales (voir `.env.example`) :
 | `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Connexion à la base de données |
 | `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION` | Pilotes de session, de cache et de file (tables créées par les migrations Laravel par défaut) |
 | `VITE_API_BASE_URL` | URL de base de l'API côté frontend (`/api` par défaut) |
+| `PORTIER_ACTIF` | `true` : bouton « Se connecter via Portier » sur `/login` (défaut `false`) |
+| `PORTIER_ISSUER`, `PORTIER_CLIENT_ID`, `PORTIER_CLIENT_SECRET` | Fournisseur OpenID Connect Portier (`https://portier.mawena.cloud`, `loan`, secret donné par `portier client-secret`) |
+| `PORTIER_REDIRECT_URI` | Adresse de retour ; vide : `APP_URL` + `/auth/portier/retour` |
 
 `.env.example` contient aussi des variables standard de Laravel ou héritées du template, que le code propre au projet n'utilise pas : `MAIL_*`, `REDIS_*`, `AWS_*`, `VITE_APP_NAME`, `VITE_MAPBOX_ACCESS_TOKEN`.
 
@@ -136,6 +139,15 @@ Les limites métier sont écrites dans le code et ne passent pas par l'environne
 - quotas : constantes `GUEST_DAILY_LIMIT` et `FREE_DAILY_LIMIT` de `QuotaService` ;
 - taux d'endettement de 40 % : `LoanCalculator::borrowingCapacity()` et `capacite-emprunt.vue` ;
 - nom affiché dans l'interface : `themeConfig.js`.
+
+### Connexion via Portier (facultative)
+
+En plus de l'e-mail et du mot de passe, qui restent inchangés, la page de connexion peut proposer
+« Se connecter via Portier » ([Portier](https://portier.mawena.cloud), connexion unique avec
+double facteur, en OpenID Connect). Portier ne crée jamais de compte : la personne est connectée
+au compte Loan **qui a la même adresse e-mail** que dans Portier (`email_verified` vrai), sinon
+la connexion est refusée avec un message. Désactivée par défaut ; détails, adresse de retour à
+déclarer et mise en service : [docs/portier.md](docs/portier.md).
 
 ## Utilisation
 
@@ -149,7 +161,8 @@ Les limites métier sont écrites dans le code et ne passent pas par l'environne
 | `/remboursement-anticipe` | public | Impact d'un remboursement anticipé |
 | `/capacite-emprunt` | public | Capacité d'emprunt |
 | `/s/{token}` | public | Simulation partagée, en lecture seule |
-| `/login`, `/register` | non connecté | Connexion, inscription |
+| `/login`, `/register` | non connecté | Connexion (et via Portier si activé), inscription |
+| `/auth/portier`, `/auth/portier/retour` | non connecté | Départ vers Portier et retour (404 si `PORTIER_ACTIF=false`) |
 | `/mes-simulations`, `/mes-simulations/{id}` | connecté | Historique et détail |
 | `/account/security` | connecté | Changement de mot de passe |
 | `/admin/users`, `/admin/roles`, `/admin/permissions` | selon permissions | Administration |
@@ -192,11 +205,13 @@ app/
 ├── Http/Controllers/API/
 │   ├── SimulationController.php   # Simulations : calcul, quota, historique, exports, partage
 │   └── AuthController.php         # Connexion, inscription, déconnexion
+├── Http/Controllers/PortierController.php # Connexion via Portier (OpenID Connect)
 ├── Models/Simulation.php          # Paramètres et résultats en JSON, share_token, ip_address
 ├── Policies/SimulationPolicy.php  # Droits sur les simulations
 └── Services/
     ├── LoanCalculator.php         # Moteur de calcul (amortissement, capacité d'emprunt)
     ├── QuotaService.php           # Quotas journaliers
+    ├── PortierOidc.php            # Client OpenID Connect (PKCE, vérification RS256 par JWKS)
     └── SimulationExportService.php # Exports PDF, Word et Excel
 database/
 ├── migrations/                    # Dont create_simulations_table et add_is_premium_to_users_table
@@ -214,7 +229,9 @@ routes/
 └── web.php
 tests/
 ├── Unit/LoanCalculatorTest.php
-└── Feature/SimulationApiTest.php
+├── Feature/SimulationApiTest.php
+└── Feature/PortierTest.php
+docs/portier.md                    # Connexion via Portier : réglages et mise en service
 docs/superpowers/specs/2026-07-07-loan-simulator-design.md # Document de conception
 ```
 
@@ -233,7 +250,10 @@ composer test
 Les tests utilisent une base SQLite en mémoire (`phpunit.xml`) et couvrent :
 
 - `tests/Unit/LoanCalculatorTest.php` : les trois méthodes d'amortissement, le taux nul, l'assurance, la cohérence des totaux, la capacité d'emprunt et le rejet d'une méthode inconnue ;
-- `tests/Feature/SimulationApiTest.php` : les quotas (visiteur, connecté, premium), la validation, l'historique, l'interdiction d'accéder aux simulations d'autrui, la suppression, les exports dans les trois formats et le cycle de vie du lien de partage.
+- `tests/Feature/SimulationApiTest.php` : les quotas (visiteur, connecté, premium), la validation, l'historique, l'interdiction d'accéder aux simulations d'autrui, la suppression, les exports dans les trois formats et le cycle de vie du lien de partage ;
+- `tests/Feature/PortierTest.php` : la connexion via Portier avec un faux fournisseur (`Http::fake` et clé RSA générée) : désactivée (404, connexion habituelle inchangée), PKCE, `state` invalide, compte inconnu (aucune création), e-mail non vérifié, signature, `nonce`, `aud`, `iss` et expiration invalides, refus de Portier, connexion réussie et code d'échange à usage unique.
+
+SQLite est nécessaire (extension `pdo_sqlite`) ; sur le VPS, seul `php8.3` l'a : `php8.3 artisan test`.
 
 Le frontend n'a pas de tests automatisés. Pour le linter :
 
