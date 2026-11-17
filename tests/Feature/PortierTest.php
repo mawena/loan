@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\PortierOidc;
+use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -67,10 +69,19 @@ class PortierTest extends TestCase
         return [$session['state'], $session['nonce']];
     }
 
+    private ?string $idToken = null;
+
+    /** Faux Portier ; un nouvel appel remplace le jeton d'identité renvoyé. */
     private function fauxPortier(array $claims, $cle = null): void
     {
+        $premierAppel = $this->idToken === null;
+        $this->idToken = $this->jeton($claims, $cle);
+        if (! $premierAppel) {
+            return;
+        }
+
         Http::fake([
-            self::ISSUER.'/oidc/jeton' => Http::response(['access_token' => 'x', 'token_type' => 'Bearer', 'id_token' => $this->jeton($claims, $cle)]),
+            self::ISSUER.'/oidc/jeton' => fn () => Http::response(['access_token' => 'x', 'token_type' => 'Bearer', 'id_token' => $this->idToken]),
             self::ISSUER.'/oidc/cles' => Http::response($this->jwks()),
         ]);
     }
@@ -93,6 +104,7 @@ class PortierTest extends TestCase
         $this->get('/auth/portier/retour?state=a&code=b')->assertNotFound();
         $this->postJson('/api/auth/portier/echange', ['code' => 'x'])->assertNotFound();
         $this->get('/login')->assertOk()->assertSee('window.portierActif = false', false);
+        $this->get('/register')->assertOk()->assertSee('window.portierActif = false', false);
     }
 
     public function test_connexion_par_mot_de_passe_inchangee(): void
@@ -128,24 +140,87 @@ class PortierTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_compte_inconnu_refuse_sans_creation(): void
+    /** Suit le retour de Portier puis l'échange du code ; renvoie la réponse JSON. */
+    private function retourEtEchange(string $state)
+    {
+        $location = $this->get("/auth/portier/retour?state=$state&code=abc")->headers->get('Location');
+        $this->assertStringContainsString('/login?portier=', $location);
+        parse_str(parse_url($location, PHP_URL_QUERY), $q);
+
+        return $this->postJson('/api/auth/portier/echange', ['code' => $q['portier']])->assertOk();
+    }
+
+    public function test_compte_inconnu_cree_comme_inscription(): void
+    {
+        Role::firstOrCreate(['name' => 'client'], ['display_name' => 'Client']);
+        [$state, $nonce] = $this->depart();
+        $this->fauxPortier($this->claims($nonce, ['email' => 'nouveau@example.com', 'name' => 'Nouveau']));
+
+        $this->retourEtEchange($state)->assertJsonPath('data.user.email', 'nouveau@example.com');
+
+        $user = User::where('email', 'nouveau@example.com')->firstOrFail();
+        $this->assertSame('Nouveau', $user->name);
+        $this->assertTrue((bool) $user->activated);
+        $this->assertFalse((bool) $user->password_change_required);
+        $this->assertTrue($user->roles()->where('name', 'client')->exists());
+        $this->assertFalse(Hash::check('', $user->password));
+    }
+
+    public function test_nom_depuis_preferred_username(): void
     {
         [$state, $nonce] = $this->depart();
-        $this->fauxPortier($this->claims($nonce, ['email' => 'inconnu@example.com']));
+        $claims = $this->claims($nonce, ['email' => 'nouveau@example.com', 'preferred_username' => 'pseudo']);
+        unset($claims['name']);
+        $this->fauxPortier($claims);
+
+        $this->retourEtEchange($state);
+        $this->assertSame('pseudo', User::where('email', 'nouveau@example.com')->value('name'));
+    }
+
+    public function test_pas_de_doublon(): void
+    {
+        $user = User::factory()->create(['email' => 'charles@example.com', 'name' => 'Ancien']);
+
+        for ($i = 0; $i < 2; $i++) {
+            [$state, $nonce] = $this->depart();
+            $this->fauxPortier($this->claims($nonce));
+            $this->retourEtEchange($state)->assertJsonPath('data.user.id', $user->id);
+        }
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertSame('Ancien', $user->fresh()->name);
+    }
+
+    public function test_email_invalide_refuse_sans_creation(): void
+    {
+        [$state, $nonce] = $this->depart();
+        $this->fauxPortier($this->claims($nonce, ['email' => 'pas-une-adresse']));
 
         $this->get("/auth/portier/retour?state=$state&code=abc")
-            ->assertRedirect('/login?portier_erreur=compte_inconnu');
+            ->assertRedirect('/login?portier_erreur=inscription');
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_email_absent_refuse_sans_creation(): void
+    {
+        [$state, $nonce] = $this->depart();
+        $claims = $this->claims($nonce);
+        unset($claims['email'], $claims['email_verified']);
+        $this->fauxPortier($claims);
+
+        $this->get("/auth/portier/retour?state=$state&code=abc")
+            ->assertRedirect('/login?portier_erreur=sans_email');
         $this->assertDatabaseCount('users', 0);
     }
 
     public function test_email_non_verifie_refuse(): void
     {
-        User::factory()->create(['email' => 'charles@example.com']);
         [$state, $nonce] = $this->depart();
         $this->fauxPortier($this->claims($nonce, ['email_verified' => false]));
 
         $this->get("/auth/portier/retour?state=$state&code=abc")
             ->assertRedirect('/login?portier_erreur=sans_email');
+        $this->assertDatabaseCount('users', 0);
     }
 
     public function test_signature_invalide_refusee(): void

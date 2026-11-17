@@ -144,9 +144,10 @@ Les limites métier sont écrites dans le code et ne passent pas par l'environne
 
 En plus de l'e-mail et du mot de passe, qui restent inchangés, la page de connexion peut proposer
 « Se connecter via Portier » ([Portier](https://portier.mawena.cloud), connexion unique avec
-double facteur, en OpenID Connect). Portier ne crée jamais de compte : la personne est connectée
-au compte Loan **qui a la même adresse e-mail** que dans Portier (`email_verified` vrai), sinon
-la connexion est refusée avec un message. Désactivée par défaut ; détails, adresse de retour à
+double facteur, en OpenID Connect), et la page d'inscription « S'inscrire via Portier ». La
+personne est connectée au compte Loan **qui a la même adresse e-mail** que dans Portier
+(`email_verified` vrai) ; s'il n'existe pas, il est créé comme par l'inscription habituelle
+(rôle `client`, mot de passe aléatoire inconnu). Sans e-mail vérifié, refus. Désactivée par défaut ; détails, adresse de retour à
 déclarer et mise en service : [docs/portier.md](docs/portier.md).
 
 ## Utilisation
@@ -161,7 +162,7 @@ déclarer et mise en service : [docs/portier.md](docs/portier.md).
 | `/remboursement-anticipe` | public | Impact d'un remboursement anticipé |
 | `/capacite-emprunt` | public | Capacité d'emprunt |
 | `/s/{token}` | public | Simulation partagée, en lecture seule |
-| `/login`, `/register` | non connecté | Connexion (et via Portier si activé), inscription |
+| `/login`, `/register` | non connecté | Connexion, inscription (et via Portier si activé) |
 | `/auth/portier`, `/auth/portier/retour` | non connecté | Départ vers Portier et retour (404 si `PORTIER_ACTIF=false`) |
 | `/mes-simulations`, `/mes-simulations/{id}` | connecté | Historique et détail |
 | `/account/security` | connecté | Changement de mot de passe |
@@ -251,7 +252,7 @@ Les tests utilisent une base SQLite en mémoire (`phpunit.xml`) et couvrent :
 
 - `tests/Unit/LoanCalculatorTest.php` : les trois méthodes d'amortissement, le taux nul, l'assurance, la cohérence des totaux, la capacité d'emprunt et le rejet d'une méthode inconnue ;
 - `tests/Feature/SimulationApiTest.php` : les quotas (visiteur, connecté, premium), la validation, l'historique, l'interdiction d'accéder aux simulations d'autrui, la suppression, les exports dans les trois formats et le cycle de vie du lien de partage ;
-- `tests/Feature/PortierTest.php` : la connexion via Portier avec un faux fournisseur (`Http::fake` et clé RSA générée) : désactivée (404, connexion habituelle inchangée), PKCE, `state` invalide, compte inconnu (aucune création), e-mail non vérifié, signature, `nonce`, `aud`, `iss` et expiration invalides, refus de Portier, connexion réussie et code d'échange à usage unique.
+- `tests/Feature/PortierTest.php` : la connexion via Portier avec un faux fournisseur (`Http::fake` et clé RSA générée) : désactivée (404, connexion habituelle inchangée), PKCE, `state` invalide, inscription d'un compte inconnu (rôle, nom), pas de doublon, e-mail absent, invalide ou non vérifié (aucune création), signature, `nonce`, `aud`, `iss` et expiration invalides, refus de Portier, connexion réussie et code d'échange à usage unique.
 
 SQLite est nécessaire (extension `pdo_sqlite`) ; sur le VPS, seul `php8.3` l'a : `php8.3 artisan test`.
 

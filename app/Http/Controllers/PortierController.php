@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\PortierOidc;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maravel\Http\Controllers\APIController;
 use Throwable;
@@ -17,7 +20,8 @@ use Throwable;
  *
  * 1. GET  /auth/portier          : départ vers Portier (state, nonce, PKCE en session).
  * 2. GET  /auth/portier/retour   : retour de Portier ; vérifie le jeton d'identité,
- *    cherche le compte local dont l'e-mail correspond (jamais de création), puis
+ *    cherche le compte local dont l'e-mail (vérifié) correspond, ou le crée comme
+ *    l'inscription habituelle (POST /api/auth/register), puis
  *    renvoie vers /login?portier=<code à usage unique, 60 s>.
  * 3. POST /api/auth/portier/echange : la SPA échange ce code contre le jeton Sanctum,
  *    exactement comme après POST /api/auth/login.
@@ -71,11 +75,9 @@ class PortierController extends APIController
             return $this->echec('sans_email');
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::where('email', $email)->first() ?? $this->inscrire($claims, $email);
         if (! $user) {
-            Log::info('Connexion Portier sans compte local', ['sub' => $claims['sub'], 'email' => $email]);
-
-            return $this->echec('compte_inconnu');
+            return $this->echec('inscription');
         }
 
         $code = Str::random(64);
@@ -100,6 +102,41 @@ class PortierController extends APIController
             'userToken' => $user->createToken($user->email)->plainTextToken,
             'user' => $user,
         ]);
+    }
+
+    /**
+     * Inscription via Portier : mêmes règles et valeurs que POST /api/auth/register
+     * (validation du nom et de l'e-mail, compte activé, rôle « client »), avec un
+     * mot de passe aléatoire que personne ne connaît.
+     */
+    private function inscrire(array $claims, string $email): ?User
+    {
+        $nom = trim((string) ($claims['name'] ?? '')) ?: trim((string) ($claims['preferred_username'] ?? '')) ?: (string) $claims['sub'];
+        $donnees = ['name' => Str::limit($nom, 255, ''), 'email' => $email];
+
+        if (Validator::make($donnees, [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+        ])->fails()) {
+            Log::info('Inscription Portier refusée', ['sub' => $claims['sub'], 'email' => $email]);
+
+            return null;
+        }
+
+        try {
+            $user = User::create($donnees + [
+                'password' => Hash::make(Str::random(64)),
+                'activated' => true,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // Inscription simultanée : le compte existe désormais.
+            return User::where('email', $email)->first();
+        }
+
+        $user->assignRole('client');
+        Log::info('Compte créé via Portier', ['sub' => $claims['sub'], 'user' => $user->getKey()]);
+
+        return $user;
     }
 
     private function echec(string $raison): RedirectResponse
